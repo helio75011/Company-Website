@@ -10,6 +10,7 @@
   --primary: #37536D;
   --primary-dark: #1a2229;
   --surface-dark: #2e3f4f;
+  --navy: #1C2333;
 
   /* Échelle de la bannière (maquette Figma 3:81, cadre de 612 × 522) :
      une cote Figma s'écrit telle quelle, multipliée par son échelle.
@@ -2001,9 +2002,6 @@ body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark h5, body.dark 
 body.dark .triangle-top:before {
   border-bottom-color: var(--surface-dark);
 }
-body.dark .timeline.exp .timeline-container::after, body.dark .timeline.edu .timeline-container::after {
-  background: var(--surface-dark);
-}
 body.dark .portfolio-filter li {
   color: #FFF;
 }
@@ -2341,7 +2339,7 @@ body.dark .blog-page-section .blog-single {
 
 .timeline.edu .timeline-container::after {
   content: "";
-  background: #FFF;
+  background: inherit;
   font-family: "simple-line-icons";
   font-size: 24px;
   color: var(--primary);
@@ -2353,7 +2351,7 @@ body.dark .blog-page-section .blog-single {
 
 .timeline.exp .timeline-container::after {
   content: "";
-  background: #FFF;
+  background: inherit;
   font-family: "simple-line-icons";
   font-size: 24px;
   color: var(--primary);
@@ -2447,6 +2445,26 @@ body.dark .blog-page-section .blog-single {
   background: #FFF;
 }
 
+/* Blocs « À mon sujet » et « Mon parcours » : fond marine, textes clairs. */
+.bg-navy {
+  background: var(--navy);
+  color: rgba(255, 255, 255, 0.8);
+}
+.bg-navy h1, .bg-navy h2, .bg-navy h3, .bg-navy h4, .bg-navy h5, .bg-navy h6, .bg-navy strong {
+  color: #FFF;
+}
+.timeline.bg-navy .timeline-container::after {
+  color: #FFF;
+}
+/* Sur le marine, la piste claire ressortait plus que la jauge : c'est la
+   jauge qui passe en blanc. */
+.bg-navy .progress {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+.bg-navy .progress-bar {
+  background-color: #FFF !important;
+}
+
 .shadow-dark, .desktop-header-3 .dropdown-menu, .form-control, .form-control:focus {
   -webkit-box-shadow: 0px 5px 20px 0px rgba(69, 67, 96, 0.1);
   box-shadow: 0px 5px 20px 0px rgba(69, 67, 96, 0.1);
@@ -2474,6 +2492,15 @@ body.dark .blog-page-section .blog-single {
 
 .padding-30 {
   padding: 30px;
+}
+
+/* Les triangles se posent sur leur bloc : en Bootstrap 5, les colonnes ne
+   sont plus positionnées. */
+.triangle-left,
+.triangle-top,
+.triangle-left-md,
+.triangle-top-sm {
+  position: relative;
 }
 
 .triangle-left:before {
@@ -2878,6 +2905,10 @@ body {
   body.dark .triangle-top-sm:before {
     border-bottom-color: var(--surface-dark);
   }
+
+  #about .triangle-top-sm:before {
+    border-bottom-color: var(--navy);
+  }
 }
 @media only screen and (min-width: 768px) {
   .container {
@@ -2898,6 +2929,10 @@ body {
 
   body.dark .triangle-left-md:before {
     border-right-color: var(--surface-dark);
+  }
+
+  #about .triangle-left-md:before {
+    border-right-color: var(--navy);
   }
 }
 @media only screen and (max-width: 576px) {
