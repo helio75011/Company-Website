@@ -391,3 +391,195 @@ $(function(){
     });
 
 });
+
+$(function(){
+    "use strict";
+
+    /*=========================================================================
+            Header : couleur principale au défilement
+    =========================================================================*/
+    var $siteHeader = $('.site-header');
+
+    var updateHeader = function() {
+        $siteHeader.toggleClass('is-scrolled', $(window).scrollTop() > 20);
+    };
+
+    updateHeader();
+    $(window).on('scroll', updateHeader);
+
+    /*=========================================================================
+            Thème Black / White (mémorisé dans le navigateur)
+    =========================================================================*/
+    var applyTheme = function(theme) {
+        var dark = theme === 'dark';
+
+        $('body').toggleClass('dark', dark);
+        $('.theme-switch button').each(function() {
+            $(this).attr('aria-pressed', $(this).data('theme-choice') === theme);
+        });
+        $('[data-theme-toggle] .drawer-meta-line').text(dark ? 'Mode clair' : 'Mode sombre');
+    };
+
+    var setTheme = function(theme) {
+        applyTheme(theme);
+        try {
+            localStorage.setItem('theme', theme);
+        } catch (e) {}
+    };
+
+    var savedTheme = null;
+    try {
+        savedTheme = localStorage.getItem('theme');
+    } catch (e) {}
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+
+    $('.theme-switch button').on('click', function() {
+        setTheme($(this).data('theme-choice'));
+    });
+
+    $('[data-theme-toggle]').on('click', function() {
+        setTheme($('body').hasClass('dark') ? 'light' : 'dark');
+    });
+
+    /*=========================================================================
+            Menu latéral (repris du tiroir de navigation InSquare)
+    =========================================================================*/
+    var drawer = document.getElementById('drawer');
+
+    if (drawer && window.gsap) {
+
+        // Même seuil que style.css : au-dessus de 500 px de large, le panneau
+        // est la colonne de la maquette ; à 500 px et en deçà, la feuille
+        // compacte qui descend du haut.
+        var DESKTOP_QUERY = '(min-width: 501px)';
+        var COMPACT_QUERY = '(max-width: 500px)';
+
+        // Chorégraphie d'InSquare : le panneau coulisse (0,7 s), les libellés le
+        // suivent en décalé, la rangée secondaire puis la carte montent du bas.
+        var PANEL_DURATION = 0.7;
+        var NAV_STAGGER = 0.08;
+
+        var q = gsap.utils.selector(drawer);
+        var $menuToggle = $('.menu-toggle');
+        var $page = $('.site-header, main');
+        var timeline = null;
+        var drawerOpen = false;
+
+        // L'ouverture est jouée par une timeline mise en pause, relue à
+        // l'envers à la fermeture. Tout est commun aux deux gabarits sauf l'axe
+        // du panneau, que chaque gabarit fournit en `slidePanel`. Les libellés
+        // principaux glissent depuis la gauche derrière leur masque
+        // (.drawer-nav-mask, overflow hidden).
+        var build = function(slidePanel) {
+            var tl = gsap
+                .timeline({ paused: true, defaults: { ease: 'power3.inOut' } })
+                .set(drawer, { visibility: 'visible', pointerEvents: 'auto' })
+                .fromTo(q('.drawer-scrim'), { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0);
+
+            slidePanel(tl);
+
+            tl.fromTo(
+                q('.drawer-nav-reveal'),
+                { x: -100, opacity: 0 },
+                { x: 0, opacity: 1, duration: 0.6, stagger: NAV_STAGGER, ease: 'power3.out' },
+                '-=0.4'
+            )
+                // Les deux colonnes secondaires montent ensemble. Le tween porte
+                // sur elles et non sur leur conteneur : un transform sur
+                // .drawer-metas en ferait le bloc de référence de leurs
+                // positions absolues.
+                .fromTo(
+                    q('.drawer-meta'),
+                    { y: 40, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out' },
+                    '-=0.4'
+                )
+                .fromTo(
+                    q('.drawer-card'),
+                    { y: 80, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' },
+                    '-=0.5'
+                );
+
+            timeline = tl;
+            // Changement de gabarit tiroir ouvert : la nouvelle timeline
+            // démarre à la fin.
+            if (drawerOpen) tl.progress(1);
+
+            return function() {
+                tl.kill();
+                timeline = null;
+            };
+        };
+
+        // Une timeline par gabarit ; gsap.matchMedia() bascule toute seule au
+        // redimensionnement.
+        var mm = gsap.matchMedia();
+
+        mm.add(DESKTOP_QUERY, function() {
+            return build(function(tl) {
+                tl.fromTo(q('.drawer-panel'), { xPercent: -100 }, { xPercent: 0, duration: PANEL_DURATION }, 0);
+            });
+        });
+
+        mm.add(COMPACT_QUERY, function() {
+            return build(function(tl) {
+                tl.fromTo(q('.drawer-panel'), { yPercent: -100 }, { yPercent: 0, duration: PANEL_DURATION }, 0);
+            });
+        });
+
+        var onKeyDown = function(event) {
+            if (event.key === 'Escape') setDrawer(false);
+        };
+
+        var setDrawer = function(open) {
+            if (open === drawerOpen) return;
+            drawerOpen = open;
+
+            var root = document.documentElement;
+            var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            $menuToggle.attr('aria-expanded', open);
+
+            if (open) {
+                // Page figée derrière le panneau, sans décalage quand la barre
+                // de défilement disparaît.
+                root.style.setProperty('--scrollbar-width', (window.innerWidth - root.clientWidth) + 'px');
+                root.classList.add('drawer-open');
+                drawer.removeAttribute('inert');
+                $page.attr('inert', '');
+                document.addEventListener('keydown', onKeyDown);
+
+                if (timeline) timeline.timeScale(reduced ? 20 : 1).play();
+
+                // Le panneau n'est focalisable qu'une fois rendu visible par la
+                // timeline.
+                gsap.delayedCall(0.1, function() {
+                    if (drawerOpen) q('.drawer-close')[0].focus({ preventScroll: true });
+                });
+            } else {
+                var hadFocus = drawer.contains(document.activeElement);
+
+                root.classList.remove('drawer-open');
+                root.style.removeProperty('--scrollbar-width');
+                drawer.setAttribute('inert', '');
+                $page.removeAttr('inert');
+                document.removeEventListener('keydown', onKeyDown);
+
+                // La fermeture rejoue la même timeline, en plus vif.
+                if (timeline) timeline.timeScale(reduced ? 20 : 1.7).reverse();
+
+                if (hadFocus) $menuToggle[0].focus({ preventScroll: true });
+            }
+        };
+
+        $menuToggle.on('click', function() {
+            setDrawer(!drawerOpen);
+        });
+
+        $(drawer).on('click', '[data-drawer-close]', function() {
+            setDrawer(false);
+        });
+    }
+
+});

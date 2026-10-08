@@ -1,8 +1,37 @@
 @charset "UTF-8";
 @import url("https://fonts.googleapis.com/css?family=Rubik:300,300i,400,400i,500,500i,700,700i,900,900i&display=swap&subset=cyrillic");
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@700&family=Inter:wght@600&family=Poppins:wght@600&display=swap");
 
 /*=================================================================*/
-/*                      BASE                              
+/*                      VARIABLES
+/*=================================================================*/
+
+:root {
+  --primary: #37536D;
+  --primary-dark: #1a2229;
+  --surface-dark: #2e3f4f;
+
+  /* Échelle de la bannière (maquette Figma 3:81, cadre de 612 × 522) :
+     une cote Figma s'écrit telle quelle, multipliée par son échelle.
+       --bx  échelle horizontale, --by  échelle verticale
+       --b   la plus petite des deux : tailles des éléments du hero
+       --u   --b bornée : petits éléments d'interface (pastilles, logo),
+             pour que leurs libellés de 7,5 px restent lisibles. */
+  --bx: calc(100vw / 612);
+  --by: calc(100vh / 522);
+  --b: min(var(--bx), var(--by));
+  --u: clamp(1.35px, var(--b), 2.2px);
+  --line: max(1px, calc(1 * var(--u)));
+}
+
+@media (min-width: 992px) {
+  :root {
+    --u: clamp(1.6px, var(--b), 2.2px);
+  }
+}
+
+/*=================================================================*/
+/*                      BASE
 /*=================================================================*/
 
 * {
@@ -30,10 +59,6 @@ img {
   max-width: 100%;
   height: auto;
   width: 70%;
-}
-
-#profile-1 {
-  border-radius: 50%;
 }
 
 #profile-2  {
@@ -368,7 +393,7 @@ pre {
   }
 }
 #preloader {
-  background: linear-gradient(#6e3650, #291a21);
+  background: linear-gradient(var(--primary), var(--primary-dark));
   height: 100%;
   position: fixed;
   width: 100%;
@@ -394,70 +419,578 @@ pre {
 /*                      HEADER                              
 /*=================================================================*/
 
-.desktop-header-3 {
-  background: #6e3650;
-  padding: 20px 0;
-  border-bottom: solid 1px rgba(255, 255, 255, 0.1);
+/* Bannière Figma 3:81 : logo et bouton du menu à gauche, navigation centrée,
+   sélecteur de thème à droite, tous centrés sur la même ligne. Transparent
+   au-dessus du hero, le header prend la couleur principale au défilement. */
+.site-header {
+  padding: calc(39 * var(--u)) calc(13 * var(--u) + var(--scrollbar-width, 0px)) calc(12 * var(--u)) calc(13 * var(--u));
+  -webkit-transition: background-color 0.3s ease-in-out, padding 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  -o-transition: background-color 0.3s ease-in-out, padding 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  transition: background-color 0.3s ease-in-out, padding 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
-.desktop-header-3 .navbar {
-  padding: 0;
-}
-.desktop-header-3 .navbar-brand {
-  padding-top: 0;
-  padding-bottom: 0;
+.site-header.is-scrolled {
+  background-color: var(--primary);
+  padding-top: 10px;
+  padding-bottom: 10px;
+  -webkit-box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.15);
+          box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.15);
 }
 
-.desktop-header-3 .navbar-dark .navbar-nav .nav-link {
+.header-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Menu latéral ouvert : comme sur InSquare, le header s'efface derrière la
+   page assombrie, le panneau portant sa propre fermeture. */
+.header-inner > * {
+  transition: opacity 0.3s ease 0.25s;
+}
+.drawer-open .header-inner > * {
+  opacity: 0;
+  pointer-events: none;
+  transition-delay: 0s;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: calc(10 * var(--u));
+}
+
+/* 6:48 / 7:68 — logo 36 × 36, coins de 11. La variante sombre (image 4)
+   remplace l'autre en mode Black. */
+.header-logo {
+  display: block;
+  width: calc(36 * var(--u));
+  height: calc(36 * var(--u));
+}
+.header-logo img,
+.drawer-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  border-radius: 30.5%;
+}
+.logo-dark,
+body.dark .logo-light {
+  display: none !important;
+}
+body.dark .logo-dark {
+  display: block !important;
+}
+
+/* 6:51..56 — cercle de 26 et trois traits de 12 × 1. */
+.menu-toggle {
+  position: relative;
+  display: block;
+  flex: none;
+  width: calc(26 * var(--u));
+  height: calc(26 * var(--u));
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-transition: background-color 0.3s ease-in-out;
+  -o-transition: background-color 0.3s ease-in-out;
+  transition: background-color 0.3s ease-in-out;
+}
+.menu-toggle:hover,
+.menu-toggle:focus-visible {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+.menu-toggle img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(26 * var(--u));
+  height: calc(26 * var(--u));
+  max-width: none;
+}
+.menu-toggle span {
+  position: absolute;
+  left: calc(7 * var(--u));
+  width: calc(12 * var(--u));
+  height: var(--line);
+  background: #FFF;
+}
+.menu-toggle span:nth-of-type(1) {
+  top: calc(9 * var(--u));
+}
+.menu-toggle span:nth-of-type(2) {
+  top: calc(13 * var(--u));
+}
+.menu-toggle span:nth-of-type(3) {
+  top: calc(17 * var(--u));
+}
+
+/* Pastilles de la maquette : Inter SemiBold 7,5, capitales. */
+.header-nav a,
+.theme-switch button,
+.hero-cta a {
+  font-family: "Inter", sans-serif;
+  font-size: calc(7.5 * var(--u));
+  font-weight: 600;
+  line-height: normal;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* 6:33 — navigation centrée sur la page, quelle que soit la largeur des
+   blocs voisins. */
+.header-nav {
+  position: absolute;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+      -ms-transform: translateX(-50%);
+          transform: translateX(-50%);
+}
+.header-nav ul {
+  display: flex;
+  align-items: center;
+  gap: calc(16 * var(--u));
+  height: calc(21 * var(--u));
+  padding: 0 calc(9 * var(--u));
+  border: var(--line) solid #FFF;
+  border-radius: 200px;
+}
+.site-header .header-nav a {
   color: #FFF;
 }
-.desktop-header-3 .nav-link {
-  font-size: 16px;
-  font-weight: 700;
-  padding: 0;
+.site-header .header-nav a:hover,
+.site-header .header-nav a:focus-visible {
+  color: rgba(255, 255, 255, 0.6);
 }
-.desktop-header-3 .nav-link.active {
-  color: #A759E2 !important;
+
+/* 7:70 + 8:89 — Black / White, la pastille blanche coulisse sous le thème
+   actif. */
+.theme-switch {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  flex: none;
+  height: calc(21 * var(--u));
+  border: var(--line) solid #FFF;
+  border-radius: 200px;
 }
-.desktop-header-3 .nav-link:hover {
-  color: #A759E2 !important;
-}
-.desktop-header-3 .dropdown-menu {
+.theme-switch .knob {
   position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 1000;
-  float: left;
-  min-width: 10rem;
-  padding: 0.5rem 0;
-  margin: 0.125rem 0 0;
-  font-size: 1rem;
-  color: #212529;
-  text-align: left;
-  list-style: none;
-  background-color: #fff;
-  background-clip: padding-box;
+  top: calc(-1 * var(--line));
+  bottom: calc(-1 * var(--line));
+  left: calc(-1 * var(--line));
+  width: calc(50% + var(--line));
+  border-radius: 200px;
+  background: #FFF;
+  -webkit-transform: translateX(100%);
+      -ms-transform: translateX(100%);
+          transform: translateX(100%);
+  -webkit-transition: -webkit-transform 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out;
+}
+body.dark .theme-switch .knob {
+  -webkit-transform: translateX(0);
+      -ms-transform: translateX(0);
+          transform: translateX(0);
+}
+.theme-switch button {
+  position: relative;
+  padding: 0 calc(7 * var(--u));
   border: 0;
-  border-radius: 0.25rem;
+  background: none;
+  color: #FFF;
+  cursor: pointer;
+  -webkit-transition: color 0.3s ease-in-out;
+  -o-transition: color 0.3s ease-in-out;
+  transition: color 0.3s ease-in-out;
 }
-.desktop-header-3 button.navbar-toggler:focus {
-  outline: 0;
-  outline: 0;
+.theme-switch button:hover,
+.theme-switch button:focus-visible {
+  color: rgba(255, 255, 255, 0.6);
 }
-.desktop-header-3 .navbar-nav li:not(:last-child) {
-  padding-right: 3rem;
+.theme-switch button[aria-pressed="true"] {
+  color: #000;
+  cursor: default;
 }
-@media (min-width: 992px) {
-  .desktop-header-3 .navbar-expand-lg .navbar-nav .nav-link {
-    padding-right: 0;
-    padding-left: 0;
+
+@media only screen and (max-width: 991px) {
+  .header-nav {
+    display: none;
   }
 }
-.desktop-header-3.light {
-  background: #F9F9FF;
-  border-bottom: solid 1px rgba(0, 0, 0, 0.05);
+
+@media only screen and (max-width: 767px) {
+  .site-header {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
 }
-.desktop-header-3.light .navbar-dark .navbar-nav .nav-link {
-  color: #353353;
+
+/*=================================================================*/
+/*                      SIDEBAR
+/*=================================================================*/
+
+/* Menu latéral repris du tiroir de navigation InSquare (maquette Figma
+   284:195) : mêmes cotes, mêmes échelles, même chorégraphie GSAP
+   (js/custom.js).
+
+   Le gabarit fait 1721 × 921 et le panneau blanc 1151 de large. Les cotes en
+   px de la maquette sont reprises telles quelles ; celles qui dépendent de la
+   largeur du panneau (colonne de droite, carte des réseaux) sont converties
+   en % de cette largeur.
+
+   Deux gabarits, même seuil que le script :
+     • au-dessus de 500 px de large, la colonne de la maquette ;
+     • à 500 px et en dessous, la feuille compacte qui descend du haut,
+       dimensionnée sur son contenu et jamais défilante. */
+
+html.drawer-open {
+  overflow: hidden !important;
+}
+html.drawer-open body {
+  padding-right: var(--scrollbar-width, 0px);
+}
+
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  color: #000;
+  font-family: "Poppins", sans-serif;
+}
+.drawer a {
+  color: inherit;
+  text-decoration: none;
+  -webkit-transition: none;
+  -o-transition: none;
+  transition: none;
+}
+
+/* 284:196 — la page reste visible derrière, assombrie de 20 %. */
+.drawer-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* 284:197 — 1151 / 1721 de large, pleine hauteur.
+
+     --sx  échelle horizontale : 1 quand la fenêtre fait 1721 de large
+     --sy  échelle verticale   : 1 quand elle fait 921 de haut
+     --s   la plus petite des deux
+
+   Les corps de texte prennent --s, les hauteurs de ligne --sy : ce sont elles
+   qui portent le rythme vertical (centres tous les 90) et le masque
+   d'animation GSAP. Comme --s ≤ --sy, le masque enveloppe toujours le
+   glyphe. */
+.drawer-panel {
+  --sx: calc(100vw / 1721);
+  --sy: calc(100vh / 921);
+  --s: min(var(--sx), var(--sy));
+  --drawer-nav-size: calc(75 * var(--s));
+  --drawer-nav-line: calc(96 * var(--sy));
+  --drawer-meta-size: calc(25 * var(--s));
+  --drawer-meta-line: calc(32 * var(--sy));
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 66.8797%;
+}
+
+/* Fond blanc du panneau, qui coulisse avec lui et son contenu. */
+.drawer-surface {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  border-radius: 0 calc(50 * var(--s)) calc(50 * var(--s)) 0;
+}
+
+/* 284:198 — le logotype (168 × 43 à (54, 38)) cède la place au logo carré,
+   centré sur la même ligne que la fermeture. */
+.drawer-logo {
+  position: absolute;
+  left: calc(54 * var(--sx));
+  top: calc(31.5 * var(--sy));
+  display: block;
+  width: calc(56 * var(--s));
+  height: calc(56 * var(--s));
+}
+
+/* 284:199 + 284:214 — pastille de 43 à 49,5 du bord droit du panneau. */
+.drawer-close {
+  position: absolute;
+  top: calc(38 * var(--sy));
+  right: calc(49.5 * var(--sx));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(43 * var(--s));
+  height: calc(43 * var(--s));
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: #f5f5f5;
+  color: #000;
+  cursor: pointer;
+}
+
+/* La croix fait 17,5 dans une pastille de 43 : elle suit donc la pastille. */
+.drawer-close svg {
+  width: 40.7%;
+  height: auto;
+}
+
+/* ---------------------------------------------------------------
+   284:200..204 — sections du site.
+   75 px SemiBold, centres optiques à 165 puis toutes les 90 px.
+   Ligne de 96 px → premier centre à 117 + 48, rythme rétabli par la
+   marge négative de 6 px.
+   --------------------------------------------------------------- */
+.drawer-nav {
+  position: absolute;
+  left: calc(84 * var(--sx));
+  top: calc(117 * var(--sy));
+}
+
+.drawer-nav-item {
+  display: block;
+  width: fit-content;
+  margin-bottom: calc(var(--drawer-nav-line) * -6 / 96);
+}
+
+/* Rogne le glissement d'entrée, qui arrive depuis la gauche. */
+.drawer-nav-mask {
+  display: block;
+  height: var(--drawer-nav-line);
+  overflow: hidden;
+}
+
+/* Cible de l'animation d'entrée. */
+.drawer-nav-reveal {
+  display: block;
+  height: var(--drawer-nav-line);
+}
+
+.drawer-nav-line {
+  display: block;
+  -webkit-transition: color 0.2s ease;
+  -o-transition: color 0.2s ease;
+  transition: color 0.2s ease;
+  height: var(--drawer-nav-line);
+  line-height: var(--drawer-nav-line);
+  font-size: var(--drawer-nav-size);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Survol : le noir passe à 60 %. C'est une couleur et non une opacité :
+   l'opacité de ces libellés est déjà pilotée par GSAP à l'entrée. */
+.drawer-nav-item:hover .drawer-nav-line,
+.drawer-nav-item:focus-visible .drawer-nav-line {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* ---------------------------------------------------------------
+   Liens secondaires — 25 px SemiBold, ligne de 32 px.
+   Les deux blocs forment une seule rangée, tous deux ancrés au bas du
+   panneau : 84 px du bas à gauche, 90 px à droite.
+   --------------------------------------------------------------- */
+.drawer-meta {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: calc(8 * var(--sy));
+}
+
+.drawer-meta-left {
+  left: calc(84 * var(--sx));
+  bottom: calc(84 * var(--sy));
+}
+
+.drawer-meta-right {
+  left: 73.1538%;
+  bottom: calc(90 * var(--sy));
+}
+
+.drawer-meta-item {
+  display: block;
+  width: fit-content;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.drawer-meta-mask {
+  display: block;
+  height: var(--drawer-meta-line);
+  overflow: hidden;
+}
+
+.drawer-meta-reveal {
+  display: block;
+  height: var(--drawer-meta-line);
+}
+
+.drawer-meta-line {
+  display: block;
+  -webkit-transition: color 0.2s ease;
+  -o-transition: color 0.2s ease;
+  transition: color 0.2s ease;
+  height: var(--drawer-meta-line);
+  line-height: var(--drawer-meta-line);
+  font-size: var(--drawer-meta-size);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.drawer-meta-item:hover .drawer-meta-line,
+.drawer-meta-item:focus-visible .drawer-meta-line {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* ---------------------------------------------------------------
+   284:205 — carte des réseaux, 576 × 291 accrochée au bord droit du
+   panneau et au bas de l'écran. Elle déborde de 6 px à droite dans la
+   maquette : 50,0434 % de 1151 reproduit ce débord.
+   --------------------------------------------------------------- */
+.drawer-card {
+  position: absolute;
+  left: 100%;
+  bottom: 0;
+  width: 50.0434%;
+  height: calc(291 * var(--sy));
+  border-radius: calc(50 * var(--s));
+  background: #fff;
+}
+
+/* 284:206 — deux lignes à (64, 38) dans la carte. */
+.drawer-card-title {
+  position: absolute;
+  left: calc(64 * var(--sx));
+  top: calc(38 * var(--sy));
+  margin: 0;
+  font-size: var(--drawer-meta-size);
+  font-weight: 600;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+/* 284:211..213 — le bloc se pose à 74 px du bas de la carte. */
+.drawer-card-socials {
+  position: absolute;
+  left: calc(64 * var(--sx));
+  bottom: calc(74 * var(--sy));
+  display: flex;
+  align-items: flex-start;
+  gap: calc(25 * var(--sx));
+}
+
+/* -------------------------------------------------------------------------
+   Gabarit compact — feuille qui descend du haut.
+
+   Le panneau prend toute la largeur mais seulement la hauteur de son contenu,
+   coins bas arrondis, la page restant visible en dessous. Il ne défile
+   jamais : tous les corps de texte se règlent sur la hauteur d'écran, en
+   `svh` pour prendre le pire cas (barre d'URL déployée). La rangée de liens
+   secondaires passe en deux colonnes.
+   ------------------------------------------------------------------------- */
+@media (max-width: 500px) {
+  .drawer-panel {
+    --drawer-nav-size: clamp(26px, 6.2vh, 46px);
+    --drawer-nav-size: clamp(26px, 6.2svh, 46px);
+    --drawer-nav-line: calc(var(--drawer-nav-size) * 96 / 75);
+    --drawer-meta-size: clamp(13px, 2.1vh, 18px);
+    --drawer-meta-size: clamp(13px, 2.1svh, 18px);
+    --drawer-meta-line: calc(var(--drawer-meta-size) * 32 / 25);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    inset: 0 0 auto 0;
+    width: 100%;
+    padding: clamp(72px, 13vh, 96px) 24px clamp(20px, 4vh, 32px);
+    padding: clamp(72px, 13svh, 96px) 24px clamp(20px, 4svh, 32px);
+  }
+
+  /* Coins bas de la feuille compacte, à l'arrêt comme pendant sa descente. */
+  .drawer-surface {
+    border-radius: 0 0 30px 30px;
+  }
+
+  /* Ils descendent avec la feuille : plus rien n'est fixé à la fenêtre. */
+  .drawer-logo {
+    left: 24px;
+    top: calc(clamp(20px, 3.6vh, 30px) - 3px);
+    top: calc(clamp(20px, 3.6svh, 30px) - 3px);
+    width: 44px;
+    height: 44px;
+  }
+
+  .drawer-close {
+    left: auto;
+    right: 24px;
+    top: clamp(20px, 3.6vh, 30px);
+    top: clamp(20px, 3.6svh, 30px);
+    width: 38px;
+    height: 38px;
+  }
+
+  /* Les cotes du gabarit sont neutralisées : tout repasse en flux. */
+  .drawer-nav,
+  .drawer-meta,
+  .drawer-card,
+  .drawer-card-title,
+  .drawer-card-socials {
+    position: relative;
+    inset: auto;
+  }
+
+  .drawer-metas {
+    display: flex;
+    gap: clamp(32px, 12vw, 64px);
+    margin-top: clamp(20px, 4vh, 32px);
+    margin-top: clamp(20px, 4svh, 32px);
+  }
+
+  .drawer-card {
+    width: 100%;
+    height: auto;
+    margin-top: clamp(18px, 3.5vh, 28px);
+    margin-top: clamp(18px, 3.5svh, 28px);
+    padding: clamp(18px, 3vh, 26px);
+    padding: clamp(18px, 3svh, 26px);
+    border-radius: 28px;
+    background: #f5f5f5;
+  }
+
+  .drawer-card-title {
+    white-space: normal;
+  }
+
+  .drawer-card-socials {
+    flex-wrap: wrap;
+    margin-top: clamp(14px, 2.6vh, 20px);
+    margin-top: clamp(14px, 2.6svh, 20px);
+    gap: clamp(16px, 5vw, 25px);
+  }
 }
 
 /*=================================================================*/
@@ -497,48 +1030,133 @@ section {
   position: relative;
 }
 
+/* Bannière Figma 3:81 — titre à gauche, portrait dans une pastille accrochée
+   au bord droit. Les marges reprennent les positions de la maquette sur
+   chaque axe (--bx, --by), les tailles suivent --b. */
 section.home {
-  background: linear-gradient(#6e3650, #291a21);
-  padding: 0;
-  height: 100vh;
+  display: flex;
+  align-items: flex-start;
   min-height: 100vh;
+  min-height: 100svh;
+  padding: 0;
+  overflow: hidden;
+  background-color: rgba(55, 83, 109, 0.88);
 }
 
-#name:hover {
-  color: #A759E2;
+/* Bloc ancré sur le titre (82, 189) : les cercles et le bouton sont posés
+   par rapport à lui. */
+section.home .hero-content {
+  position: relative;
+  flex: none;
+  width: calc(294 * var(--b));
+  margin: calc(189 * var(--by)) 0 0 calc(82 * var(--bx));
 }
-section.home .intro {
-  margin: auto;
-  max-width: 540px;
-  text-align: center;
+
+section.home .parallax {
+  pointer-events: none;
+}
+section.home .layer {
+  display: block;
+  max-width: none;
+}
+/* 7:77 */
+section.home .circle-navy {
+  left: calc(-38 * var(--b));
+  top: calc(98 * var(--b));
+  width: calc(103 * var(--b));
+  height: calc(106 * var(--b));
+}
+/* 7:61 */
+section.home .circle-violet {
+  left: calc(134 * var(--b));
+  top: calc(-28 * var(--b));
+  width: calc(90 * var(--b));
+  height: calc(91 * var(--b));
+}
+/* 7:62 */
+section.home .circle-blue {
+  left: calc(179 * var(--b));
+  top: calc(83 * var(--b));
+  width: calc(68 * var(--b));
+  height: calc(71 * var(--b));
+}
+
+/* 7:76 — Archivo Bold 32, capitales. */
+section.home .hero-title {
   position: relative;
   z-index: 1;
-}
-section.home .intro h1 {
+  margin: 0;
   color: #FFF;
-  font-size: 36px;
+  font-family: "Archivo", sans-serif;
+  font-size: calc(32 * var(--b));
+  font-weight: 700;
+  line-height: normal;
+  text-transform: uppercase;
 }
-section.home .intro span {
-  color: #FFF;
-  font-size: 16px;
+
+/* 8:83 — pastille blanche à 18 sous le titre. */
+section.home .hero-cta {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(10 * var(--u));
+  height: calc(21 * var(--u));
+  margin: calc(18 * var(--b)) 0 0;
+  padding: 0 calc(9 * var(--u));
+  border: var(--line) solid #FFF;
+  border-radius: 200px;
+  background: #FFF;
 }
-section.home .social-icons li a {
-  color: #FFF;
+section.home .hero-cta a {
+  color: #000;
 }
-section.home.light {
-  background: #F9F9FF;
+section.home .hero-cta a:hover,
+section.home .hero-cta a:focus-visible {
+  color: rgba(0, 0, 0, 0.6);
 }
-section.home.light .intro h1 {
-  color: #353353;
+
+/* 9:101 — pastille de 198 × 145 bordée de blanc, qui déborde de 14 à droite :
+   seul son bout arrondi reste visible. */
+section.home .hero-portrait {
+  position: relative;
+  flex: none;
+  width: calc(198 * var(--b));
+  height: calc(145 * var(--b));
+  margin: calc(233 * var(--by)) calc(-14 * var(--b)) 0 auto;
+  border: max(1px, calc(1 * var(--b))) solid #FFF;
+  border-radius: calc(100 * var(--b)) 0 0 calc(100 * var(--b));
+  overflow: hidden;
 }
-section.home.light .intro span {
-  color: #454360;
+/* 7:59 — 86 × 120 à (26, 12), coins bas de 50. */
+section.home .hero-portrait img {
+  position: absolute;
+  left: calc(26 * var(--b));
+  top: calc(12 * var(--b));
+  width: calc(86 * var(--b));
+  height: calc(120 * var(--b));
+  max-width: none;
+  object-fit: cover;
+  border-radius: 0 0 calc(50 * var(--b)) calc(50 * var(--b));
 }
-section.home.light .social-icons li a {
-  color: #353353;
-}
-section.home.light .social-icons li a:hover {
-  color: #A759E2;
+
+/* Mobile : la maquette ne tient plus en largeur. Le portrait passe au-dessus
+   du titre et l'échelle se règle sur la largeur d'écran. */
+@media only screen and (max-width: 767px) {
+  section.home {
+    --b: clamp(1px, calc(100vw / 340), 1.3px);
+    flex-direction: column;
+    justify-content: center;
+    padding: 100px 0 calc(40 * var(--b));
+  }
+  section.home .hero-portrait {
+    order: -1;
+    margin: 0 calc(-14 * var(--b)) calc(48 * var(--b)) auto;
+  }
+  section.home .hero-content {
+    max-width: calc(100% - 48px);
+    margin: 0 24px;
+  }
 }
 
 .section-title {
@@ -570,50 +1188,6 @@ section.home.light .social-icons li a:hover {
 }
 .parallax .layer {
   position: absolute;
-}
-.parallax .p1 {
-  left: 10%;
-  top: 10%;
-}
-.parallax .p2 {
-  left: 25%;
-  top: 30%;
-}
-.parallax .p3 {
-  left: 15%;
-  bottom: 30%;
-}
-.parallax .p4 {
-  left: 10%;
-  bottom: 10%;
-}
-.parallax .p5 {
-  left: 45%;
-  top: 10%;
-}
-.parallax .p6 {
-  left: 40%;
-  bottom: 10%;
-}
-.parallax .p7 {
-  top: 20%;
-  right: 30%;
-}
-.parallax .p8 {
-  right: 30%;
-  bottom: 20%;
-}
-.parallax .p9 {
-  right: 10%;
-  top: 10%;
-}
-.parallax .p10 {
-  top: 45%;
-  right: 20%;
-}
-.parallax .p11 {
-  bottom: 10%;
-  right: 10%;
 }
 
 /*=================================================================*/
@@ -693,7 +1267,7 @@ section.home.light .social-icons li a:hover {
 }
 .portfolio-item .details span.term {
   color: #FFF;
-  background: #6e3650;
+  background: var(--primary);
   border-bottom-left-radius: 15px;
   border-bottom-right-radius: 15px;
   font-size: 14px;
@@ -768,10 +1342,10 @@ section.home.light .social-icons li a:hover {
   transition: all 0.3s ease-in-out;
 }
 .portfolio-filter li:hover {
-  color: #6e3650;
+  color: var(--primary);
 }
 .portfolio-filter li.current {
-  color: #6e3650;
+  color: var(--primary);
 }
 .portfolio-filter li:not(:last-child) {
   margin-right: 1.8rem;
@@ -936,7 +1510,7 @@ select.portfolio-filter-mobile {
   transform: scale(1.1);
 }
 .blog-item .category {
-  background: #6e3650;
+  background: var(--primary);
   border-bottom-left-radius: 15px;
   border-bottom-right-radius: 15px;
   color: #FFF;
@@ -1318,7 +1892,7 @@ select.portfolio-filter-mobile {
   border-color: #353353;
 }
 .scroll-down.light .mouse .wheel {
-  background: linear-gradient(#6e3650, #291a21);
+  background: linear-gradient(var(--primary), var(--primary-dark));
 }
 
 @-webkit-keyframes ani-mouse {
@@ -1392,7 +1966,7 @@ select.portfolio-filter-mobile {
 }
 
 footer.footer {
-  background: linear-gradient(#6e3650, #291a21);
+  background: linear-gradient(var(--primary), var(--primary-dark));
   padding: 40px 0;
   text-align: center;
 }
@@ -1410,7 +1984,7 @@ footer.footer.light {
 /*=================================================================*/
 body.dark {
   color: #FFF;
-  background: linear-gradient(#6e3650, #291a21);
+  background: linear-gradient(var(--primary), var(--primary-dark));
 }
 body.dark .section-title {
   color: #FFF;
@@ -1419,16 +1993,16 @@ body.dark .section-title:before {
   background: url("../images/dots-bg-light.svg");
 }
 body.dark .bg-dark {
-  background: #302f4e !important;
+  background: var(--surface-dark) !important;
 }
 body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark h5, body.dark h6 {
   color: #FFF;
 }
 body.dark .triangle-top:before {
-  border-bottom-color: #302f4e;
+  border-bottom-color: var(--surface-dark);
 }
 body.dark .timeline.exp .timeline-container::after, body.dark .timeline.edu .timeline-container::after {
-  background: #302f4e;
+  background: var(--surface-dark);
 }
 body.dark .portfolio-filter li {
   color: #FFF;
@@ -1449,26 +2023,26 @@ body.dark .contact-info {
   background-image: url("../images/map-light.png");
 }
 body.dark .white-popup {
-  background: #302f4e;
+  background: var(--surface-dark);
 }
 body.dark footer.footer {
   border-top: solid 1px rgba(255, 255, 255, 0.1);
 }
 body.dark .content-blog,
 body.dark .blog-page-section {
-  background: linear-gradient(#6e3650, #291a21);
+  background: linear-gradient(var(--primary), var(--primary-dark));
 }
 body.dark .bg-white {
-  background-color: #302f4e !important;
+  background-color: var(--surface-dark) !important;
 }
 body.dark .blog-standard .meta li a, body.dark .blog-standard .title a, body.dark .comment-author .fn {
   color: #fff;
 }
 body.dark .blog-page-section .blog-pagination ul li {
-  background-color: #302f4e !important;
+  background-color: var(--surface-dark) !important;
 }
 body.dark .blog-page-section .blog-single {
-  background-color: #302f4e !important;
+  background-color: var(--surface-dark) !important;
 }
 
 /*=================================================================*/
@@ -1525,7 +2099,7 @@ body.dark .blog-page-section .blog-single {
 }
 .btn-default {
   color: #FFF;
-  background: #6e3650;
+  background: var(--primary);
   display: inline-block;
   vertical-align: middle;
   position: relative;
@@ -1611,7 +2185,7 @@ body.dark .blog-page-section .blog-single {
   line-height: 7px;
   color: #fff;
   text-align: center;
-  background-color: #6e3650 !important;
+  background-color: var(--primary) !important;
   -webkit-box-shadow: none;
   box-shadow: none;
   -webkit-transition: width 0.6s ease;
@@ -1770,7 +2344,7 @@ body.dark .blog-page-section .blog-single {
   background: #FFF;
   font-family: "simple-line-icons";
   font-size: 24px;
-  color: #6e3650;
+  color: var(--primary);
   position: absolute;
   left: -7px;
   top: 0;
@@ -1782,7 +2356,7 @@ body.dark .blog-page-section .blog-single {
   background: #FFF;
   font-family: "simple-line-icons";
   font-size: 24px;
-  color: #6e3650;
+  color: var(--primary);
   position: absolute;
   left: -7px;
   top: 0;
@@ -1810,7 +2384,7 @@ body.dark .blog-page-section .blog-single {
 .timeline span.line {
   position: absolute;
   width: 1px;
-  background-color: #6e3650;
+  background-color: var(--primary);
   top: 30px;
   bottom: 30px;
   left: 34px;
@@ -2255,16 +2829,8 @@ body {
   main.content-2 {
     margin-left: 0;
   }
-
-  .desktop-header-3 .nav-link {
-    padding: 7px 0;
-  }
 }
 @media only screen and (max-width: 768px) {
-  section.home {
-    padding: 300px 0;
-  }
-
   .portfolio-filter {
     display: none;
   }
@@ -2310,7 +2876,7 @@ body {
   }
 
   body.dark .triangle-top-sm:before {
-    border-bottom-color: #302f4e;
+    border-bottom-color: var(--surface-dark);
   }
 }
 @media only screen and (min-width: 768px) {
@@ -2331,58 +2897,13 @@ body {
   }
 
   body.dark .triangle-left-md:before {
-    border-right-color: #302f4e;
+    border-right-color: var(--surface-dark);
   }
 }
 @media only screen and (max-width: 576px) {
   .portfolio-info li {
     display: block;
     padding: 5px 0;
-  }
-
-  .parallax .p1 {
-    left: 10%;
-    top: 10%;
-  }
-  .parallax .p2 {
-    left: 15%;
-    top: 30%;
-  }
-  .parallax .p3 {
-    left: 10%;
-    bottom: 30%;
-  }
-  .parallax .p4 {
-    left: 10%;
-    bottom: 10%;
-  }
-  .parallax .p5 {
-    left: 45%;
-    top: 3%;
-  }
-  .parallax .p6 {
-    left: 40%;
-    bottom: 10%;
-  }
-  .parallax .p7 {
-    top: 20%;
-    right: 30%;
-  }
-  .parallax .p8 {
-    right: 30%;
-    bottom: 20%;
-  }
-  .parallax .p9 {
-    right: 10%;
-    top: 5%;
-  }
-  .parallax .p10 {
-    top: 45%;
-    right: 10%;
-  }
-  .parallax .p11 {
-    bottom: 10%;
-    right: 10%;
   }
 }
 @media only screen and (max-width: 380px) {
